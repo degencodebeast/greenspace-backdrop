@@ -24,9 +24,7 @@ import remarkGfm from "remark-gfm";
 import { HTMLChakraProps, ThemingProps } from "@chakra-ui/system";
 import { MdCheckBox, MdCheckBoxOutlineBlank } from "react-icons/md";
 
-interface BlockQuoteProps
-  extends HTMLChakraProps<"blockquote">,
-    ThemingProps<"Container"> {
+interface BlockQuoteProps extends HTMLChakraProps<"blockquote">, ThemingProps<"Container"> {
   align?: "";
 }
 const BlockQuote = Box as ComponentWithAs<"blockquote", BlockQuoteProps>;
@@ -38,26 +36,12 @@ const MarkdownRenderer = ({ markdown }: { markdown: string }) => {
       children={markdown}
       remarkPlugins={[remarkGfm]}
       components={{
-        a: ({ node, ...props }) => (
-          <Link {...props} color={"blue.600"} isExternal />
-        ),
-        p: ({ node, ...props }) => (
-          <Text
-            {...props}
-            fontWeight={300}
-            // color={"gray.00"}
-            letterSpacing={1.1}
-            my={4}
-          />
-        ),
+        a: ({ node, ...props }) => <Link {...props} color={"gs-yellow.400"} isExternal />,
+        p: ({ node, ...props }) => <Text {...props} fontWeight={300} my={2} />,
+        b: ({ node, ...props }) => <Text as={"b"} {...props} fontWeight={"bold"} />,
+        strong: ({ node, ...props }) => <Text as={"strong"} {...props} fontWeight={"bold"} />,
         table: ({ node, ...props }) => (
-          <TableContainer
-            my={8}
-            borderRadius={"md"}
-            border={"1px"}
-            borderColor={"gray.600"}
-            py={4}
-          >
+          <TableContainer my={8} borderRadius={"md"} border={"1px"} borderColor={"gray.600"} py={4}>
             <Table {...props} variant={"striped"} />
           </TableContainer>
         ),
@@ -69,7 +53,7 @@ const MarkdownRenderer = ({ markdown }: { markdown: string }) => {
             <List className={className} {...props} />
           ) : (
             //@ts-ignore
-            <OrderedList className={className} {...props} />
+            <List className={className} {...props} listStyleType={"initial"} />
           ),
         //@ts-ignore
         ol: ({ node, ordered, className, ...props }) =>
@@ -82,8 +66,7 @@ const MarkdownRenderer = ({ markdown }: { markdown: string }) => {
         li: ({ ordered, node, checked, className, ...props }) =>
           className === "task-list-item" ? (
             <ListItem className={className} {...props}>
-              <ListIcon as={checked ? MdCheckBox : MdCheckBoxOutlineBlank} />{" "}
-              {props.content}
+              <ListIcon as={checked ? MdCheckBox : MdCheckBoxOutlineBlank} /> {props.content}
             </ListItem>
           ) : (
             <ListItem className={className} {...props} />
@@ -97,24 +80,12 @@ const MarkdownRenderer = ({ markdown }: { markdown: string }) => {
         thead: ({ node, ...props }) => <Thead {...props} />,
         tfoot: ({ node, ...props }) => <Tfoot {...props} />,
         img: ({ node, alt, ...props }) => <Image alt={alt} {...props} />,
-        h1: ({ node, ...props }) => (
-          <Heading as={"h1"} size={"xl"} my={"6"} {...props} />
-        ),
-        h2: ({ node, ...props }) => (
-          <Heading as={"h2"} size={"lg"} my={"5"} {...props} />
-        ),
-        h3: ({ node, ...props }) => (
-          <Heading as={"h3"} size={"md"} my={"4"} {...props} />
-        ),
-        h4: ({ node, ...props }) => (
-          <Heading as={"h4"} size={"20px"} my={"3"} {...props} />
-        ),
-        h5: ({ node, ...props }) => (
-          <Heading as={"h5"} size={"18px"} my={"2"} {...props} />
-        ),
-        h6: ({ node, ...props }) => (
-          <Heading as={"h6"} size={"16px"} my={"1"} {...props} />
-        ),
+        h1: ({ node, ...props }) => <Heading as={"h1"} size={"xl"} mt={"1.5rem"} mb={"1rem"} {...props} />,
+        h2: ({ node, ...props }) => <Heading as={"h2"} size={"lg"} mt={"1.5rem"} mb={"1rem"} {...props} />,
+        h3: ({ node, ...props }) => <Heading as={"h3"} size={"md"} mt={"1.5rem"} mb={"1rem"} {...props} />,
+        h4: ({ node, ...props }) => <Heading as={"h4"} size={"24px"} mt={"1.5rem"} mb={"1rem"} {...props} />,
+        h5: ({ node, ...props }) => <Heading as={"h5"} size={"20px"} mt={"1.5rem"} mb={"1rem"} {...props} />,
+        h6: ({ node, ...props }) => <Heading as={"h6"} size={"16px"} mt={"1.5rem"} mb={"1rem"} {...props} />,
 
         blockquote: ({ node, ...props }) => (
           <BlockQuote
@@ -129,7 +100,7 @@ const MarkdownRenderer = ({ markdown }: { markdown: string }) => {
             maxW={"1000"}
             py={4}
             pr={4}
-            bg={"gray.900"}
+            bg={"gray.700"}
           />
         ),
       }}

@@ -4,10 +4,60 @@
 @import "material-symbols/outlined.css";
 
 @import "react-datepicker/dist/react-datepicker.css";
+
+/* .gs-datepicker-calendar {
+  border-radius: 12px;
+  border: 1px solid var(--chakra-colors-gray-600);
+  background: var(--chakra-colors-gray-800);
+  color: var(--chakra-colors-gray-100);
+
+  padding: 0.375rem;
+}
+
+
+.gs-datepicker-popper.react-datepicker-popper[data-placement^="top"]
+  .react-datepicker__triangle::after {
+  border-top-color: var(--chakra-colors-gray-600);
+}
+.gs-datepicker-popper.react-datepicker-popper[data-placement^="bottom"]
+  .react-datepicker__triangle::after {
+  border-bottom-color: var(--chakra-colors-gray-600);
+}
+.gs-datepicker-calendar {
+  background: var(--chakra-colors-gray-900);
+  color: var(--chakra-colors-gray-100); 
+} 
+.gs-datepicker-wrapper {
+}
+*/
+.gs-datepicker-popper {
+  z-index: 6;
+}
+.gs-datepicker {
+  border-radius: 12px;
+  border: 1px solid var(--chakra-colors-gray-600);
+  background: var(--chakra-colors-gray-900);
+  color: var(--chakra-colors-gray-100);
+  padding: 0.375rem 0.5rem;
+}
+.gs-datepicker:focus {
+  outline: none;
+  border-color: var(--chakra-colors-gs-yellow-400);
+}
+.no-scrollbar {
+  overflow: auto; /* Allow scrolling */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Webkit browsers */
+}
+
 :root {
   --chat-area-width: 330px;
 }
-.mde-header {
+/* .mde-header {
   background: #000 !important;
 }
 .mde-header ul.mde-header-group li.mde-header-item button {
@@ -17,9 +67,9 @@
 .mde-textarea-wrapper textarea.mde-text {
   background: #000 !important;
   color: #f0f0ef !important;
-}
+} */
 .link-in-chat {
-  color: var(--chakra-colors-blue-700);
+  color: var(--chakra-colors-gs-yellow-400);
   text-decoration: underline;
 }
 * {
@@ -37,10 +87,8 @@ body {
   font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0;
 }
 .material-symbols-outlined.bold {
-  font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0,
-    "opsz" var(--icon-size);
+  font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" var(--icon-size);
 }
 .material-symbols-outlined.fill {
-  font-variation-settings: "FILL" 1, "wght" 300, "GRAD" 0,
-    "opsz" var(--icon-size);
+  font-variation-settings: "FILL" 1, "wght" 300, "GRAD" 0, "opsz" var(--icon-size);
 }

@@ -36,7 +36,7 @@ import { format } from "date-fns";
 import NutritionistDashBoardLayout from "src/components/NutritionistDashboardLayout";
 import { useState } from "react";
 import { MealPlan } from "src/types/shared";
-import { v4 as uuid } from "uuid";
+
 import { useAppContext } from "src/context/state";
 import { shortenText } from "src/utils";
 import { Link } from "@chakra-ui/next-js";
@@ -65,7 +65,7 @@ export default function DashBoard() {
   const today = new Date().getTime();
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user, setMealPlans } = useAppContext();
+
   const toast = useToast({
     duration: 3000,
     position: "top",

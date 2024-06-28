@@ -1,7 +1,7 @@
 import { HeaderNav } from "src/components/HeaderNav";
 import PageWrapper from "src/components/PageWrapper";
-import { useAuth } from "src/hooks";
-import { useCreateAppointmentMutation } from "src/state/services";
+
+import { useCreateAppointmentMutation, useGetNutritionistsQuery } from "src/state/services";
 import { NewAppointment, Nutritionist } from "src/state/types";
 import {
   useToast,
@@ -27,8 +27,11 @@ import { useEffect, useState } from "react";
 //@ts-ignore
 import DatePicker from "react-datepicker";
 import { HiOutlineBookOpen, HiOutlineLocationMarker } from "react-icons/hi";
+import { usePrivy } from "@privy-io/react-auth";
+import { addMinutesToDate, convertJsDateToMysqlDate } from "src/utils";
+import PageLoader from "src/components/PageLoader";
 
-const data: Nutritionist[] = [
+const data: Partial<Nutritionist>[] = [
   {
     id: 1,
     fullName: "Michelle Sanchez",
@@ -36,7 +39,7 @@ const data: Nutritionist[] = [
     bio: `Michelle is a passionate nutritionist dedicated to helping individuals achieve their health and wellness goals through proper nutrition. With a Bachelor's degree in Nutrition and years of experience in the field, she possesses a deep understanding of the vital role that food plays in our lives.
     `,
     avatar: "/images/f-user-47.jpg",
-    location: "Mexico",
+    country: "Mexico",
   },
   {
     id: 2,
@@ -44,7 +47,7 @@ const data: Nutritionist[] = [
     authId: "ydueuHDyuiprk",
     bio: ` Chris is a seasoned nutritionist with a strong commitment to improving lives through the power of nutrition. Armed with a Master's degree in Nutritional Science and a wealth of expertise, he brings a holistic perspective to the table.`,
     avatar: "/images/m-user-30.jpg",
-    location: "Nigeria",
+    country: "Nigeria",
   },
   {
     id: 3,
@@ -52,7 +55,7 @@ const data: Nutritionist[] = [
     authId: "vfueuHDyuiprk",
     bio: `Rachel is a dedicated nutritionist on a mission to inspire healthier living through balanced eating. Armed with a Bachelor's degree in Nutrition and years of practical experience, she possesses a deep-rooted passion for helping individuals unlock their full wellness potential. `,
     avatar: "/images/f-user-53.jpg",
-    location: "United States",
+    country: "United States",
   },
   {
     id: 4,
@@ -61,7 +64,7 @@ const data: Nutritionist[] = [
     bio: ` Anna is a highly skilled nutritionist with a strong commitment to promoting wellness through informed dietary choices. Holding a Master's degree in Nutritional Science and a wealth of experience, she brings a comprehensive understanding of the intricate relationship between nutrition and health. 
     `,
     avatar: "/images/f-user-26.jpg",
-    location: "United States",
+    country: "United States",
   },
 ];
 const sectionTimes = [30, 45, 60, 90, 120];
@@ -72,27 +75,28 @@ export default function NutritionistPage() {
     status: "success",
     title: "Your appointment was booked successfully",
   });
-  const { user } = useAuth();
+
+  const { user } = usePrivy();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [selectedNutritionist, setSelectedNutritionist] =
-    useState<Nutritionist | null>(null);
+  const { data: nutritionistResponse } = useGetNutritionistsQuery({});
+  console.log({ nutritionistResponse });
+
+  const [selectedNutritionist, setSelectedNutritionist] = useState<Partial<Nutritionist> | null>(null);
   const [bookingDate, setBookingDate] = useState(new Date());
-  const [createAppointment, { data: createdAppointment, isLoading }] =
-    useCreateAppointmentMutation();
+  const [createAppointment, { isLoading }] = useCreateAppointmentMutation();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showBookingDetails, setShowBookingDetails] = useState(false);
   const [sectionDuration, setSectionDuration] = useState(30);
   const [appointment, setAppointment] = useState<NewAppointment>({
-    requestedBy: user?.authId,
+    requestedBy: user?.id,
     duration: sectionDuration,
     nutritionistId: "",
     startTime: null,
     endTime: null,
   });
 
-  const minsToMillisec = (mins: number) => +mins * 1000 * 60;
-
-  const handleClick = (nutritionist: Nutritionist) => {
+  const handleClick = (nutritionist: Partial<Nutritionist>) => {
     onOpen();
     setSelectedNutritionist(nutritionist);
 
@@ -114,41 +118,44 @@ export default function NutritionistPage() {
 
     setShowBookingDetails(true);
   };
-
-  function handleBookingSubmit() {
+  function handleAppointmentModalClose() {
+    resetAppointment();
+    onClose();
+  }
+  function resetAppointment() {
+    setSelectedNutritionist(null);
+    setSectionDuration(30);
+    setAppointment({
+      requestedBy: user?.id,
+      duration: sectionDuration,
+      nutritionistId: "",
+      startTime: null,
+      endTime: null,
+    });
+  }
+  async function handleBookingSubmit() {
     setIsSubmitting(true);
-    createAppointment(appointment);
-    console.log({ appointment });
+    await createAppointment(appointment).unwrap();
+
     setTimeout(() => {
       setIsSubmitting(false);
       toast();
-      onClose();
-    }, 3000);
+      handleAppointmentModalClose();
+    }, 2000);
   }
   useEffect(() => {
     setAppointment((prev) => ({
       ...prev,
-      requestedBy: user?.authId,
+      requestedBy: user?.id,
       duration: sectionDuration,
-      startTime: bookingDate,
-      endTime: addMinutesToBookingDate(sectionDuration, bookingDate),
+      startTime: convertJsDateToMysqlDate(bookingDate),
+      endTime: convertJsDateToMysqlDate(addMinutesToDate(sectionDuration, bookingDate)),
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingDate, sectionDuration, user]);
-  function addMinutesToBookingDate(
-    minutes: number,
-    bookingDate: string | Date
-  ) {
-    // Get the current date and time
-    const now = new Date(bookingDate);
-    // Calculate the new time by adding minutes
-    const newTime = new Date(now.getTime() + minsToMillisec(minutes)); // 60000 milliseconds = 1 minute
-
-    return newTime;
-  }
 
   return (
-    <>
+    <PageLoader>
       <Head>
         <title>Find a Nutrionists | GreenspaceDAO</title>
         <meta
@@ -157,28 +164,11 @@ export default function NutritionistPage() {
 We're building healthy communities focused on longevity all around the world, we want to help people live longer, better through community inclusive programs that improve productivity,"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta
-          name="og:image"
-          content={"https://greenspacedao.xyz/opengraph.png"}
-        />
+        <meta name="og:image" content={"https://greenspacedao.xyz/opengraph.png"} />
         <link rel="icon" href="/icons/favicon.ico" />
-        <link
-          rel="apple-touch-icon"
-          sizes="180x180"
-          href="/icons/apple-touch-icon.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="32x32"
-          href="/icons/favicon-32x32.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="16x16"
-          href="/icons/favicon-16x16.png"
-        />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
         <link rel="manifest" href="/site.webmanifest"></link>
       </Head>
       <PageWrapper>
@@ -191,15 +181,7 @@ We're building healthy communities focused on longevity all around the world, we
         >
           <HeaderNav />
           <Box maxW={"1300"} mx={"auto"}>
-            <Heading
-              size={"lg"}
-              letterSpacing={"1px"}
-              my={4}
-              bg={"gray.900"}
-              py={4}
-              px={3}
-              rounded={"md"}
-            >
+            <Heading size={"lg"} letterSpacing={"1px"} my={4} bg={"gray.900"} py={4} px={3} rounded={"md"}>
               Find Nutritionists from around the world
             </Heading>
             <Flex gap={6} wrap={"wrap"}>
@@ -218,20 +200,11 @@ We're building healthy communities focused on longevity all around the world, we
                       <HStack>
                         <Avatar size={"lg"} src={nutritionist.avatar} />
                         <Box>
-                          <Heading
-                            letterSpacing={"1px"}
-                            as={"h3"}
-                            mb={2}
-                            size={"md"}
-                          >
+                          <Heading letterSpacing={"1px"} as={"h3"} mb={2} size={"md"}>
                             {nutritionist.fullName}
                           </Heading>
                           <Text as={Flex} gap={1}>
-                            <HiOutlineLocationMarker
-                              name="location_on"
-                              size={20}
-                            />{" "}
-                            {nutritionist.location}
+                            <HiOutlineLocationMarker name="location_on" size={20} /> {nutritionist.country}
                           </Text>
                         </Box>
                       </HStack>
@@ -243,8 +216,7 @@ We're building healthy communities focused on longevity all around the world, we
                         rounded={"full"}
                         size={"md"}
                       >
-                        <HiOutlineBookOpen size={24} name="book" /> Book an
-                        Appointment
+                        <HiOutlineBookOpen size={24} name="book" /> Book an Appointment
                       </Button>
                     </Flex>
                     <Box>
@@ -261,33 +233,32 @@ We're building healthy communities focused on longevity all around the world, we
             </Flex>
           </Box>
 
-          <Modal size={"3xl"} isOpen={isOpen} onClose={onClose}>
+          <Modal size={"3xl"} isOpen={isOpen} onClose={handleAppointmentModalClose}>
             <ModalOverlay />
             <ModalContent>
               <ModalHeader>Booking appointment</ModalHeader>
               <ModalCloseButton />
               <ModalBody>
                 <Text mb={5}>
-                  You&apos;re booking{" "}
-                  <span>{selectedNutritionist?.fullName} </span>
+                  You&apos;re booking <span>{selectedNutritionist?.fullName} </span>
                 </Text>
-                {showBookingDetails && (
-                  <Box>
-                    <Text fontWeight={"semibold"} mb={2}>
-                      {" "}
-                      Appointment Details:
-                    </Text>
-                    <Text>
-                      {" "}
-                      <span> Date: </span>
-                      {format(bookingDate, "E, d MMM yyyy hh:mm aaa")}
-                    </Text>
-                    <Text>
-                      {" "}
-                      <span>Duration:</span> {sectionDuration} Mins{" "}
-                    </Text>
-                  </Box>
-                )}
+                {/* {showBookingDetails && ( */}
+                <Box>
+                  <Text fontWeight={"semibold"} mb={2}>
+                    {" "}
+                    Appointment Details:
+                  </Text>
+                  <Text>
+                    {" "}
+                    <span> Date: </span>
+                    {format(bookingDate, "E, d MMM yyyy hh:mm aaa")}
+                  </Text>
+                  <Text>
+                    {" "}
+                    <span>Duration:</span> {sectionDuration} Mins{" "}
+                  </Text>
+                </Box>
+                {/* )} */}
                 <Flex wrap={"wrap"} gap={6}>
                   <Box>
                     <Heading size={"md"} my={4}>
@@ -318,9 +289,7 @@ We're building healthy communities focused on longevity all around the world, we
                             variant={"ghost"}
                             colorScheme="gs-yellow"
                             bg={sectionDuration === dur ? "gs-yellow.300" : ""}
-                            color={
-                              sectionDuration === dur ? "gs-yellow.900" : ""
-                            }
+                            color={sectionDuration === dur ? "gs-yellow.900" : ""}
                             // className={`text-primaryGreen rounded-full px-4 py-2 border ${
                             //   sectionDuration === dur ? "bg-primaryYellow" : ""
                             // }`}
@@ -337,18 +306,19 @@ We're building healthy communities focused on longevity all around the world, we
               <ModalFooter>
                 <Button
                   variant={"outline"}
+                  rounded={"full"}
                   colorScheme="gray"
                   mr={3}
-                  onClick={onClose}
+                  onClick={handleAppointmentModalClose}
                 >
                   Cancel
                 </Button>
                 <Button
+                  rounded={"full"}
                   onClick={handleBookingSubmit}
                   variant="solid"
                   isDisabled={isSubmitting || isLoading}
                   isLoading={isSubmitting || isLoading}
-                  // className="disabled:opacity-60 bg-primaryYellow text-primaryGreen"
                 >
                   Complete Booking
                 </Button>
@@ -357,6 +327,6 @@ We're building healthy communities focused on longevity all around the world, we
           </Modal>
         </Box>
       </PageWrapper>
-    </>
+    </PageLoader>
   );
 }

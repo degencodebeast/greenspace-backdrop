@@ -1,3 +1,33 @@
+import { USER } from "src/state/types";
+
+export type USER_TYPE = "member" | "nutritionist";
+export type USER_ROLE = "user" | "admin";
+export type PostStatus = "published" | "draft" | "deleted";
+export type Timestamp = string | Date;
+export interface Community {
+  id: number;
+  spaceId: string;
+  status?: PostStatus;
+  views: number;
+  name: string;
+  description?: string;
+  visibility?: "public" | "private" | string;
+  slug?: string;
+  displayImage?: string;
+  coverImage?: string;
+  author: AUTHOR;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+export type NEW_COMMUNITY = Pick<
+  Community,
+  | "status"
+  | "coverImage"
+  | "description"
+  | "displayImage"
+  | "name"
+  | "visibility"
+>;
 export type Article = {
   id: number;
   slug: string;
@@ -7,12 +37,11 @@ export type Article = {
   userId: string;
   status?: PostStatus;
   intro?: string;
-  createdAt: string | Date;
-  updatedAt?: string | Date;
+  createdAt: Timestamp;
+  updatedAt?: Timestamp;
   views?: number;
   author: AUTHOR;
 };
-export type PostStatus = "published" | "draft" | "deleted";
 
 export type NewArticle = Pick<
   Article,
@@ -29,12 +58,10 @@ export type MealPlan = {
   intro?: string;
   views?: number;
   time: "breakfast" | "lunch" | "dinner" | "snack" | string;
-  createdAt: string | Date;
-  updatedAt?: string | Date;
+  createdAt: Timestamp;
+  updatedAt?: Timestamp;
   author: AUTHOR;
 };
-export type USER_TYPE = "member" | "nutritionist";
-export type USER_ROLE = "user" | "admin";
 export interface IUser {
   id: number;
   fullName: string;
@@ -45,8 +72,8 @@ export interface IUser {
   avatar?: string;
   userType: USER_TYPE;
   role?: USER_ROLE;
-  createdAt: string | Date;
-  updatedAt?: string | Date;
+  createdAt: Timestamp;
+  updatedAt?: Timestamp;
   chainId?: number;
 }
 export type NewUser = Pick<
@@ -81,8 +108,8 @@ export type FitnessPlan = {
   status?: PostStatus;
   intro?: string;
   views?: number;
-  createdAt: string | Date;
-  updatedAt?: string | Date;
+  createdAt: Timestamp;
+  updatedAt?: Timestamp;
   author: AUTHOR;
 };
 export type AUTHOR = {

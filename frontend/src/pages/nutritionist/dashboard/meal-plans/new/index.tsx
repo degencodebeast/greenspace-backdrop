@@ -1,22 +1,7 @@
-import {
-  Box,
-  Button,
-  Flex,
-  FormLabel,
-  HStack,
-  Input,
-  Select,
-  Stack,
-  Text,
-  Textarea,
-  useToast,
-} from "@chakra-ui/react";
+import { Box, Button, Flex, FormLabel, HStack, Input, Select, Stack, Textarea, useToast } from "@chakra-ui/react";
 import NutritionistDashboardLayout from "src/components/NutritionistDashboardLayout";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
-import ReactMde from "react-mde";
 
-import "react-mde/lib/styles/css/react-mde-all.css";
-import MarkdownRenderer from "src/components/MarkdownRenderer";
 import DragAndDropImage from "src/components/DragAndDropImage";
 
 import { generateSlug } from "src/utils";
@@ -24,14 +9,13 @@ import { generateSlug } from "src/utils";
 import { useRouter } from "next/router";
 import { NewMealPlan, PostStatus } from "src/types/shared";
 import { useAddMealPlanMutation } from "src/state/services";
-import { useAppContext } from "src/context/state";
-import { useAuth } from "src/hooks";
-import { resolveIPFSURI, uploadToThirdWeb } from "src/helpers";
+import { useInAppAuth } from "src/hooks/common";
+import { resolveIPFSURI } from "src/helpers";
 import { useStorageUpload } from "@thirdweb-dev/react";
+import TextEditor from "src/components/TextEditor";
 
 export default function NewPostPage() {
-  const [addMealPlan, { isLoading, status, isSuccess, isError, data }] =
-    useAddMealPlanMutation();
+  const [addMealPlan, { isLoading, status, isSuccess, isError, data }] = useAddMealPlanMutation();
 
   const router = useRouter();
   const toast = useToast({
@@ -40,7 +24,7 @@ export default function NewPostPage() {
     status: "success",
     title: " Successful",
   });
-  const { user } = useAuth();
+  const { user } = useInAppAuth();
   const [imageFile, setImageFile] = useState<string>();
   const { mutateAsync: uploadToThirdWeb } = useStorageUpload();
 
@@ -56,18 +40,15 @@ export default function NewPostPage() {
     image: "",
     time: "breakfast",
     status: "draft",
-    userId: user?.authId!,
+    userId: user?.id!,
   });
 
   const [selectedTab, setSelectedTab] = useState<"write" | "preview">("write");
-  const onImageChangeHandler = useCallback(
-    (hasImage: boolean, files: File[], image: string) => {
-      if (hasImage) {
-        setImageFile(image);
-      }
-    },
-    []
-  );
+  const onImageChangeHandler = useCallback((hasImage: boolean, files: File[], image: string) => {
+    if (hasImage) {
+      setImageFile(image);
+    }
+  }, []);
   async function saveAsDraft() {
     try {
       let imageUrl = "";
@@ -115,11 +96,7 @@ export default function NewPostPage() {
     setPost((prev) => ({ ...prev, content: value }));
   }
 
-  function handleInputChange(
-    event: ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ): void {
+  function handleInputChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void {
     const { name, value } = event.target;
     setPost((prev) => ({ ...prev, [name]: value }));
   }
@@ -132,7 +109,7 @@ export default function NewPostPage() {
       image: "",
       time: "breakfast",
       status: "draft",
-      userId: user?.authId!,
+      userId: user?.id!,
     });
     setContentValue("");
     setImageFile(undefined);
@@ -155,9 +132,9 @@ export default function NewPostPage() {
     setPost((prev) => ({
       ...prev,
       content: contentValue,
-      userId: user?.authId!,
+      userId: user?.id!,
     }));
-  }, [contentValue, user?.authId]);
+  }, [contentValue, user?.id]);
   return (
     <>
       <NutritionistDashboardLayout>
@@ -177,30 +154,17 @@ export default function NewPostPage() {
             >
               {" "}
               <HStack gap={4}>
-                <Button
-                  isLoading={isLoading}
-                  onClick={saveAsPublished}
-                  rounded={"full"}
-                  px={6}
-                  size="md"
-                >
+                <Button isLoading={isLoading} onClick={saveAsPublished} rounded={"full"} px={6} size="md">
                   Publish{" "}
                 </Button>{" "}
-                <Button
-                  isLoading={isLoading}
-                  onClick={saveAsDraft}
-                  rounded={"full"}
-                  variant={"outline"}
-                >
+                <Button isLoading={isLoading} onClick={saveAsDraft} rounded={"full"} variant={"outline"}>
                   Save as draft
                 </Button>
               </HStack>
             </Flex>
             <Stack px={4} py={6} gap={3}>
               <DragAndDropImage
-                onUploadChange={(hasImage, files, image) =>
-                  onImageChangeHandler(hasImage, files, image)
-                }
+                onUploadChange={(hasImage, files, image) => onImageChangeHandler(hasImage, files, image)}
               />{" "}
               <Input
                 name="title"
@@ -222,12 +186,7 @@ export default function NewPostPage() {
               ></Textarea>
               <Box my={4}>
                 <FormLabel htmlFor="meal-time">Choose Meal Time</FormLabel>
-                <Select
-                  id="meal-time"
-                  defaultValue={""}
-                  name="time"
-                  onChange={handleInputChange}
-                >
+                <Select id="meal-time" defaultValue={""} name="time" onChange={handleInputChange}>
                   <option value="" disabled></option>
                   <option value="breakfast">Breakfast</option>
                   <option value="lunch">Lunch</option>
@@ -238,17 +197,7 @@ export default function NewPostPage() {
                   {errors.time?.message}
                 </Text> */}
               </Box>
-              <Box py={4}>
-                <ReactMde
-                  value={contentValue}
-                  onChange={(value: string) => handleEditorChange(value)}
-                  selectedTab={selectedTab}
-                  onTabChange={setSelectedTab}
-                  generateMarkdownPreview={(markdown: string) =>
-                    Promise.resolve(<MarkdownRenderer markdown={markdown} />)
-                  }
-                />
-              </Box>
+              <TextEditor initialValue={contentValue} onContentChange={(value: string) => handleEditorChange(value)} />
               <Box></Box>
             </Stack>
           </Box>
